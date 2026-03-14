@@ -123,7 +123,81 @@ High Level Design
         - Progress Indicator
         - Resumable Uploads
 
-      - To do that we need to do chunking. (ie. breaking down the files into small chunks) and upload them one at a time or 
+      - To do that we need to do chunking. (ie. breaking down the files into small chunks) and upload them one at a time or some in parallel. Note that chunking should be done at client side (not server side). 
+
+      With chunks, it's rather straightforward - progress indicator to the user keep track of each chunks like (uploading, uploaded, not-uploaded).
+      `FileMetadata` can have schema to include a chunk field.
+      ```
+      {
+        "id": "123",
+        "name": "file.txt",
+        "size": 1000,
+        "mimeType": "text/plain",
+        "uploadedBy": "user1",
+        "status": "uploading",
+        "chunks": [
+          {
+            "id": "chunk1",
+            "status": "uploaded"
+          },
+          {
+            "id": "chunk2",
+            "status": "uploading"
+          },
+          {
+            "id": "chunk3",
+            "status": "not-uploaded"
+          }
+        ]
+      }
+      ```
+      this also helps in resuming the uploads. 
+
+      But how should we ensure this chunks field is kept in sync with the actual chunks that have been uploaded?
+      - Server-Side Chunk verification.
+      Let the client make a patch request to upload the chunks with a Etag (supported on S3's multipart file upload feature).
+      ```
+      PATCH /files/{fileId}/chunks
+      Request:
+      {
+        "chunks": [
+          {
+            "id": "chunk1",
+            "status": "uploaded"
+            "ETag": 1
+          },
+        ]
+      }
+      ```
+
+      Each chunk gets an ETag upon successful upload, which the client can include in the PATCH request to our backend. Our backend can then verify these ETags by calling S3's ListParts API, providing an efficient way to validate multiple chunks at once.
+
+      how to uniquely identify a file and a chunk?
+      - (1) Have I tried to upload this file before?
+      - (2) If yes, which chunks have I already uploaded?
+
+      we need to rely on a unique identifier that is derived from the file's content. This is called a fingerprint. using encryption sha-256 we can get a hash value. and store this value in as a field.
+
+      For resumable uploads, the process involves not only fingerprinting the entire file but also generating fingerprints for each individual chunk. This chunk-level fingerprinting allows the system to precisely identify which parts of the file have already been transmitted.
+
+
+      - The client will chunk the file into 5-10MB pieces and calculate a fingerprint for each chunk. 
+      - The client will send a request to check if a file with the same fingerprint already exists for this user. If it does and has a status of "uploading", the client can resume the upload by fetching the existing chunk statuses.
+      - If the file does not exist, the client will POST a request to initiate a multipart upload. The backend will call S3's CreateMultipartUpload API to get an uploadId, generate presigned URLs for each part, save the file metadata in the FileMetadata table with a status of "uploading", and return the uploadId along with presigned URLs for each chunk.
+      - The client will then upload each chunk to S3 using its corresponding presigned URL (each part requires its own presigned URL with the uploadId and partNumber). After each chunk is uploaded, the client sends a PATCH request to our backend with the chunk status and ETag. Our backend can then verify the chunk uploads with S3's ListParts API before updating the chunks field in the FileMetadata table to mark the chunk as "uploaded".
+      - Once all chunks in our chunks array are marked as "uploaded", the backend calls S3's CompleteMultipartUpload API with the list of part numbers and ETags. This tells S3 to assemble all the parts into a single object. Only after S3 confirms successful assembly does the backend update the FileMetadata table to mark the file as "uploaded".
+
+  - How can we make uploads, downloads, and syncing as fast as possible?
+    - For Download: we use CDNs. 
+    - For Upload: Chunking gives option to parallel upload. 
+    - Also use compression like Gzip. But make sure we match the threshold
+
+  - How can we ensure the file security?
+    - Encryption at transfer: user https.
+    - Encryption at rest. Encode and save files on there.
+    - Access Control. we already have a `shareList` which acts as a basic ACL.
+      - Here presigned URLs also come handy.
+
 
 
 
