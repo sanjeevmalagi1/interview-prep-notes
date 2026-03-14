@@ -25,7 +25,7 @@ HLD questions list:
 - Hello Interview
 
 LLD questions list:
-- https://github.com/ashishps1/awesome-low-level-design
+- Hello Interview LLD
 
 DSA question list:
 - https://neetcode.io/roadmap

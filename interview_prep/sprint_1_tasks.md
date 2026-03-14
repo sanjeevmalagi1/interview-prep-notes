@@ -1,14 +1,14 @@
 Sprint 1: 13 Mar - 20 Mar
 
 - HLD:
-  - https://www.hellointerview.com/learn/system-design/core-concepts/networking-essentials - 3 SP
+  - [x] https://www.hellointerview.com/learn/system-design/core-concepts/networking-essentials - 3 SP
   - https://www.hellointerview.com/learn/system-design/problem-breakdowns/bitly - 1 SP
-  - https://www.hellointerview.com/learn/system-design/problem-breakdowns/dropbox - 1 SP
+  - [x] https://www.hellointerview.com/learn/system-design/problem-breakdowns/dropbox - 1 SP
   - https://www.hellointerview.com/learn/system-design/problem-breakdowns/gopuff - 1 SP
 
 - LLD:
-  - https://github.com/ashishps1/awesome-low-level-design?tab=readme-ov-file#-oop-fundamentals - 3 SP
-  - https://github.com/ashishps1/awesome-low-level-design/blob/main/problems/parking-lot.md (easy) - 1 SP
+  - https://www.hellointerview.com/learn/low-level-design/in-a-hurry - 3 SP
+  - https://www.hellointerview.com/learn/low-level-design/problem-breakdowns/connect-four (easy) - 1 SP
   - https://github.com/ashishps1/awesome-low-level-design/blob/main/problems/atm.md (medium) - 1 SP
   - https://github.com/ashishps1/awesome-low-level-design/blob/main/problems/cricinfo.md (hard) - 1 SP
   - https://github.com/ashishps1/awesome-low-level-design/blob/main/problems/stack-overflow.md (easy) - 1 SP
