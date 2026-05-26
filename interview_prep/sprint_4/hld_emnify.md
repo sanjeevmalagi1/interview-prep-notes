@@ -1,7 +1,8 @@
-# System Design IoT Event Actions management system
+# System Design: IoT based Event Actions management system
 Design a event based action worker system (similar to Zaiper)
 
 events -> action(s)
+
 ex: "turn on light" -> send email
                     -> send SMS
                     -> check data usage
@@ -17,7 +18,6 @@ ex: "turn on light" -> send email
 - after event execution need to store the status of each execution and each action
 
 ## Non Functional Requirements
-- availability: the system should be highly available
 - retry mechanism: each action may fail, and can / should be retried before terminating
 
 ## Entities
@@ -107,3 +107,4 @@ kafka queue <-- Event Action Resolver -> Executor -> queue <- (workers) -> Compl
 
 ### Completion Aggregator
 - Increments `Event Executions.completed_actions` or `Event Executions.failed_actions`
+- Updates `Event Executions.status` based on status of events
