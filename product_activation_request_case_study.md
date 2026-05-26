@@ -9,7 +9,17 @@ Since some features or abilities require a level of compliance from our customer
 
 ## Why is it needed
 - We needed a common framework for our analyst - customer interactions for non-KYC/KYB activities.
-- We knew the existing KYC / KYB flow are inadequate to handle such requests. But the underlying concepts like maker/checker flow (state machine), missing info flows and history tracking are inherited from KYB flow.
+- We knew the existing KYC / KYB flow are inadequate to handle such requests. But the underlying concepts like maker/checker flow (with state machine), missing info flows and history tracking are inherited from KYC / KYB flow are required.
+
+## Requirements
+### Functional Requirements
+- Create a common framework for our analyst - customer interactions for non-KYC/KYB activities.
+- Should be able to support different types of activation requests dynamically
+
+### Non Functional Requirements
+- Should support existing features like maker/checker flow (inheriting from KYB/KYC flows), missing info flow, trackable history
+- Should use existing `approvables` 
+- Should use existing `key-value` store to store additional details
 
 ## High Level Design
 
@@ -25,7 +35,7 @@ Control api as "Main API"
 Control service as "Micro-Service"
 
 autonumber
-user -> app: Completes {action}
+user -> app: Completes an {action}
 app -> api: Register action
 
 
@@ -43,17 +53,34 @@ service --> api: list
 api --> dash: list
 
 analyst -> dash: Approves Product Activation Request
-dash -> api: PUT v1/product-activation-request/{uuid}
-api -> service: PUT v1/product-activation-request/{uuid}
+dash -> api: PUT v1/approvables/{approvable_uuid}
+api -> service: PUT v1/approvables/{approvable_uuid}
 
-service -> api: Submit `UpdateProductActivationRequest` event
+service --> api: Submit `UpdateProductActivationRequest` event
 note right api
     UpdateProductActivationRequest {
-        type: success,
-        ...other_details
+        state: {state},
+        type: {activation_request_type},
+        business_uuid: {business_uuid},
+        ...other_related_details
     }
 end note
 api -> events: Publish `ActivationRequestSuccessful`
+
+analyst -> dash: Declines Product Activation Request
+dash -> api: PUT v1/approvables/{approvable_uuid}
+api -> service: PUT v1/approvables/{approvable_uuid}
+
+service --> api: Submit `UpdateProductActivationRequest` event
+note right api
+    UpdateProductActivationRequest {
+        state: {state},
+        type: {activation_request_type},
+        business_uuid: {business_uuid},
+        ...other_related_details
+    }
+end note
+api -> events: Publish `ActivationRequestFailed`
 
 @enduml
 ```
@@ -67,7 +94,7 @@ POST /v1/product-activation-request
 Request Body:
 ```JSON
 {
-  "type": "{type}",
+  "product_slug": "{product-slug}",
   "business_uuid": "{business_uuid}",
   "business_group_uuid": "{business_group_uuid}",
   "application_uuid": "{application_uuid}"
@@ -91,7 +118,9 @@ Response:
 "data": [
   {
     "uuid": "uuid",
-    ...kyb_properties,
+    "approvable_uuid": "kyb-uuid",
+    "business_uuid": "{business_uuid}",
+    ...approvables_properties,
     "additional_data": {
       ...additional_properties_associated
     }
@@ -100,16 +129,43 @@ Response:
 ]
 ```
 
-03. Update Activation Request
+03. Update Activation Request (only for properties)
 
 PUT v1/product-activation-request/{uuid}
 
 Request Body:
 ```JSON
 {
-  "state": "{new_target_state}",
-  "process_state": "{new_target_process_state}",
-  "analyst_uuid": "{uuid of analyst to be assigned}"
+  "property_key": "{property_value}"
+}
+```
+
+04. Support existing all operations on approveables
+
+PUT v1/approvables/{uuid}
+
+Request Body:
+```JSON
+{
+  "assignee_uuid": "uuid", // Used to assign analysts to 
+  "state_code": "state_code", // Existing state code to support maker-checker-flow
+  "process_state_code": "process_state_code", // Existing process state code to support maker-checker-flow
+}
+```
+
+#### Events
+```
+UpdateProductActivationRequest {
+  state: {state},
+  type: {activation_request_type},
+  business_uuid: {business_uuid},
+  ...other_related_details
+}
+
+ActivationRequestSuccess {
+  type: {activation_request_type},
+  business_uuid: {business_uuid},
+  ...other_related_details
 }
 ```
 
@@ -141,4 +197,22 @@ table approvables {
   state_code: string,
   process_state_code: string,
 }
+
+// this is a existing feature with generics to track property and values across this project
+table properties {
+  id: int: auto incrementing,
+  uuid: unique generated uuid,
+  property_key: string, // unique slug
+}
+
+table property_values { 
+  id: int: auto incrementing,
+  uuid: unique generated uuid,
+  property_id: properties.id,
+  model_uuid: uuid, // uuid of model, `activation_request_uuid`
+  model_type: string, // type of model, `activation_request`
+  value: json
+}
 ```
+
+## 
