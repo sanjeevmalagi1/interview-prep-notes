@@ -99,3 +99,30 @@ Also prepare:
   - Both teams agreed on the compromise.
   - We delivered the demo on time, and later replaced the temporary implementation with a scalable version.
   - It also improved trust between product and engineering because we handled the disagreement collaboratively rather than emotionally.
+
+## Questions to Ask the Interviewer (Software Engineer)
+
+**Team & day-to-day**
+- What does the team structure look like — how are engineers split across Broker, Wealth Management, Savings, Credit, Retirement? Is it feature teams or platform/shared-services teams?
+- What does a typical sprint/week look like for you — how much is new feature work vs. maintenance, incident response, or paying down tech debt?
+- How is on-call handled, and how often does it come up given the regulated/banking context?
+
+**Tech stack & architecture**
+- You use both TypeScript and Kotlin/Java — how is that split in practice? Is it per-service, or do engineers move between frontend and backend/JVM work regularly?
+- Is the backend a monolith, modular monolith, or microservices? How many services roughly, and how do teams manage ownership boundaries?
+- How do you handle communication between services — REST, GraphQL, async/event-driven (queues, Kafka, etc.)? Where does each fit?
+- What does your CI/CD pipeline look like — how long from merge to production, and how much is automated (tests, canary/rollout, rollback)?
+- What's observability like day-to-day — what do you reach for first when something breaks in production?
+
+**Regulatory / security tension**
+- How do you balance shipping speed with the compliance/audit requirements of being a regulated bank? Is there a formal review gate, or is it built into normal engineering process?
+- How involved are engineers in security reviews or threat modeling for new features, versus that being owned by a separate security/compliance team?
+- Has a compliance or regulatory requirement ever significantly reshaped a technical design you were working on? What was that like?
+
+**AI adoption**
+- The listing mentions interest in AI-powered features — is that exploratory right now, or are there AI features already in production? What's the team's approach to using AI tools (Copilot/Claude/etc.) in the actual engineering workflow?
+
+**Growth & culture**
+- What does career growth look like for a senior engineer here — more scope on a single team, or movement across the Broker/Wealth/Savings/Credit domains?
+- What's one thing about working here that surprised you after joining?
+- What's the biggest engineering challenge the team is tackling right now?
